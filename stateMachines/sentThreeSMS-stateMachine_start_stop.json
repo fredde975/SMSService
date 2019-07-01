@@ -1,0 +1,74 @@
+
+
+{
+  "receiver": "+46739888132",
+  "sender": "MySMS",
+  "message": "Hello there! How are you doing 1?",
+  "endDate": "2019-06-25T01:59:00Z"
+},
+
+
+
+
+{
+  "Comment": "Send 3 SMS",
+  "StartAt": "ConfigureCount",
+  "States": {
+
+    "ConfigureCount": {
+      "Type": "Pass",
+      "Result": {
+        "count": 3,
+        "index": 0,
+        "step": 1
+      },
+      "ResultPath": "$.iterator",
+      "Next": "CalculateDates"
+    },
+    "CalculateDates": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:487526570401:function:CalculateDates",
+      "ResultPath": "$.dates",      //dates: { ["date0", "date1", "date2"]}
+      "Next": "Iterator"
+    },
+    "Iterator": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:487526570401:function:Iterator",
+      "ResultPath": "$.iterator",
+      "Next": "WaitTenSeconds"
+    },
+    "waitUntil" : {
+      "Type": "Wait",
+      "Timestamp": "$.dates",
+      "Next": "NextState"
+    }
+    "WaitTenSeconds": {
+      "Type": "Wait",
+      "Seconds": 10,
+      "Next": "HasSent3SMS"
+    },
+    "HasSent3SMS": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.iterator.continue",
+          "BooleanEquals": true,
+          "Next": "SendSMS"
+        }
+      ],
+      "Default": "Done"
+    },
+    "SendSMS": {
+      "Comment": "Send an SMS",
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:487526570401:function:SendSMS",
+      "ResultPath": "$.result",
+      "Next": "Iterator"
+    },
+    "Done": {
+      "Type": "Pass",
+      "End": true
+
+    }
+  }
+}
