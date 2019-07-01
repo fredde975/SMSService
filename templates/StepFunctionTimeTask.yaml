@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS Step Functions sample project for scheduling a task
+Resources:
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: SNSPublishPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "SNS:Publish"
+                Resource: !Ref SNSTopic
+
+  SNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: "StepFunctionsTemplate-TaskTimerTopic"
+
+  SendToSNS:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.lambda_handler"
+      Role: !GetAtt [ LambdaExecutionRole, Arn ]
+      Code:
+        ZipFile: |
+          console.log('Loading function');
+          const aws = require('aws-sdk');
+
+          exports.lambda_handler = (event, context, callback) => {
+              const sns = new aws.SNS();
+              console.log(`Sending message to SNS topic ${event.topic}`);
+              const messageInfo = {
+                  Message: event.message,
+                  TopicArn: event.topic
+              };
+              sns.publish(messageInfo, (err, data) => {
+                  if (err) {
+                      console.error(err.message);
+                      callback(err.message);
+                      return;
+                  }
+                  console.log(data);
+                  callback(null);
+              });
+          };
+
+      Runtime: "nodejs8.10"
+      Timeout: "25"
+
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: states.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+
+  TaskTimerStateMachine:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      DefinitionString:
+        !Sub
+        - |-
+          {
+            "Comment": "An example of the Amazon States Language for scheduling a task.",
+            "StartAt": "Wait for Timestamp",
+            "States": {
+              "Wait for Timestamp": {
+                "Type": "Wait",
+                "SecondsPath": "$.timer_seconds",
+                "Next": "Send SNS Message"
+              },
+              "Send SNS Message": {
+                "Type": "Task",
+                "Resource": "${sendtoSNSArn}",
+                "Retry" : [
+                  {
+                    "ErrorEquals": [ "States.ALL" ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2.0
+                  }
+                ],
+                "End": true
+              }
+            }
+          }
+        - {sendtoSNSArn: !GetAtt [ SendToSNS, Arn ]}
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
+
+Outputs:
+  StateMachineArn:
+    Value:
+      Ref: TaskTimerStateMachine
+  ExecutionInput:
+    Description: Sample input to StartExecution.
+    Value:
+      !Sub
+      - |-
+        {
+          "topic": "${topicArn}",
+          "message": "HelloWorld",
+          "timer_seconds": 10
+        }
+      - {topicArn: !Ref SNSTopic}
+  Feedback
+  English (US)
+  Terms of UsePrivacy Policy© 2008 - 2019, Amazon Web Services, Inc. or its affiliates. All rights reserved.

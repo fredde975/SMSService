@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This state machine will send three text messages."
+Resources:
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+
+  CalculateDatesFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.calculateDates"
+      Role: !GetAtt [ LambdaExecutionRole, Arn ]
+      Code:
+        S3Bucket: "fredrik-sms-service"
+        S3Key: "calculateDates.zip"
+      Runtime: "nodejs10.x"
+      Timeout: "25"
+
+  IteratorFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.iterator"
+      Role: !GetAtt [ LambdaExecutionRole, Arn ]
+      Code:
+        S3Bucket: "fredrik-sms-service"
+        S3Key: "iterator.zip"
+      Runtime: "nodejs10.x"
+      Timeout: "25"
+
+  SendSMSFuction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: "index.sendSMS"
+      Role: !GetAtt [ LambdaExecutionRole, Arn ]
+      Code:
+        S3Bucket: "fredrik-sms-service"
+        S3Key: "sendSMS.zip"
+      Runtime: "nodejs10.x"
+      Timeout: "25"
+
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+
+
+  SMSStateMachine:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      DefinitionString:
+        !Sub
+        - |-
+          {
+            "Comment": "State machine to send a number of text messages over a period of time",
+            "StartAt": "ConfigureCount",
+            "States": {
+
+              "ConfigureCount": {
+                "Type": "Pass",
+                "Result": {
+                  "count": 3,
+                  "index": 0,
+                  "step": 1
+                },
+                "ResultPath": "$.iterator",
+                "Next": "CaclulateDates"
+              },
+
+              "CaclulateDates":{
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:us-east-1:487526570401:function:CalculateDates",
+                "ResultPath": "$.dates",
+                "Next": "Iterator"
+              },
+
+              "Iterator": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:us-east-1:487526570401:function:Iterator",
+                "ResultPath": "$.iterator",
+                "Next": "WaitUntilDate"
+              },
+
+              "WaitUntilDate": {
+                "Type": "Wait",
+                "TimestampPath": "$.iterator.nextDate",
+                "Next": "SendSMS"
+              },
+
+              "SendSMS": {
+                "Comment": "Send an SMS",
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:us-east-1:487526570401:function:SendSMS",
+                "ResultPath": "$.result",
+                "Next": "HasSent3SMS"
+              },
+
+              "HasSent3SMS": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                    "Variable": "$.iterator.continue",
+                    "BooleanEquals": true,
+                    "Next": "Iterator"
+                  }
+                ],
+                "Default": "Done"
+              },
+
+              "Done": {
+                "Type": "Pass",
+                "End": true
+
+              }
+            }
+          }
+        - {calculateDatesArn: !GetAtt [ CalculateDatesFunction, Arn ],
+           iteratorArn: !GetAtt [ IteratorFunction, Arn ],
+           sendSMSArn: !GetAtt [ SendSMSFuction, Arn ]}
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
