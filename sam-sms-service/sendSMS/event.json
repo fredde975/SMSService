@@ -1,0 +1,19 @@
+{
+  "Comment": "Test my Iterator function",
+  "receiver": "+46739888132",
+  "sender": "MySMS",
+  "message": "Hello there! How are you doing?",
+  "endDate": "2019-07-01T13:13:00Z",
+  "iterator": {
+    "index": 3,
+    "step": 1,
+    "count": 3,
+    "nextDate": "2019-07-01T13:11:00.000Z",
+    "continue": false
+  },
+  "dates": [
+    "2019-07-01T13:09:44.201Z",
+    "2019-07-01T13:10:22.100Z",
+    "2019-07-01T13:11:00.000Z"
+  ]
+}
