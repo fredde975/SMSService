@@ -206,8 +206,8 @@ When you're satisfied with your Lambda function, bundle the Lambda function, AWS
 
 ``` 
 >sam package \
-    >     --output-template-file packaged.yaml \
-    >     --s3-bucket fredrik-sms-service
+         --output-template-file packaged.yaml \
+         --s3-bucket fredrik-sms-service
 ```
 
 

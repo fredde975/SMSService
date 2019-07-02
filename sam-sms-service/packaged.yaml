@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'sam-sms-service
+
+  Sample SAM Template for sam-sms-service
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+Outputs:
+  CalculateDatesFunction:
+    Description: CalculateDatesFunction ARN
+    Value:
+      Fn::GetAtt:
+      - CalculateDatesFunction
+      - Arn
+  CalculateDatesFunctionIamRole:
+    Description: Implicit IAM Role created for CalculateDatesFunction
+    Value:
+      Fn::GetAtt:
+      - CalculateDatesFunction
+      - Arn
+  IteratorFunction:
+    Description: IteratorFunction ARN
+    Value:
+      Fn::GetAtt:
+      - IteratorFunction
+      - Arn
+  IteratorFunctionIamRole:
+    Description: Implicit IAM Role created for IteratorFunction
+    Value:
+      Fn::GetAtt:
+      - IteratorFunction
+      - Arn
+  SendSMSFunction:
+    Description: SendSMSFunction ARN
+    Value:
+      Fn::GetAtt:
+      - SendSMSFunction
+      - Arn
+  SendSMSFunctionIamRole:
+    Description: Implicit IAM Role created for SendSMSFunction
+    Value:
+      Fn::GetAtt:
+      - SendSMSFunction
+      - Arn
+Resources:
+  CalculateDatesFunction:
+    Properties:
+      CodeUri: s3://fredrik-sms-service/6a02127a645e7c6f453452b58426b307
+      Handler: index.calculateDates
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+  IteratorFunction:
+    Properties:
+      CodeUri: s3://fredrik-sms-service/b7eed1e9449f1b31c69c717864e49166
+      Handler: index.iterator
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+  SendSMSFunction:
+    Properties:
+      CodeUri: s3://fredrik-sms-service/3c7b3409d500332df3bf2217904adbcf
+      Handler: index.sendSMS
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

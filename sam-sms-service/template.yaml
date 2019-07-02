@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    sam-sms-service
+
+    Sample SAM Template for sam-sms-service
+    
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+    Function:
+        Timeout: 3
+
+
+Resources:
+
+    CalculateDatesFunction:
+      Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+      Properties:
+        CodeUri: calculateDates/           #point to the code in the project folder structure
+        Handler: index.calculateDates
+        Runtime: nodejs8.10
+    IteratorFunction:
+      Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+      Properties:
+        CodeUri: iterator/           #point to the code in the project folder structure
+        Handler: index.iterator
+        Runtime: nodejs8.10
+    SendSMSFunction:
+      Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+      Properties:
+        CodeUri: sendSMS/           #point to the code in the project folder structure
+        Handler: index.sendSMS
+        Runtime: nodejs8.10
+Outputs:
+
+#    HelloWorldApi:
+#      Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+#      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+
+    CalculateDatesFunction:
+      Description: "CalculateDatesFunction ARN"
+      Value: !GetAtt CalculateDatesFunction.Arn
+
+    CalculateDatesFunctionIamRole:
+      Description: "Implicit IAM Role created for CalculateDatesFunction"
+      Value: !GetAtt CalculateDatesFunction.Arn
+
+    IteratorFunction:
+      Description: "IteratorFunction ARN"
+      Value: !GetAtt IteratorFunction.Arn
+
+    IteratorFunctionIamRole:
+      Description: "Implicit IAM Role created for IteratorFunction"
+      Value: !GetAtt IteratorFunction.Arn
+
+    SendSMSFunction:
+      Description: "SendSMSFunction ARN"
+      Value: !GetAtt SendSMSFunction.Arn
+
+    SendSMSFunctionIamRole:
+      Description: "Implicit IAM Role created for SendSMSFunction"
+      Value: !GetAtt SendSMSFunction.Arn
