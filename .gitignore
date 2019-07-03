@@ -77,3 +77,9 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modulesgit
+/node_modules/
+/sam-sms/hello-world/node_modules/
+/sam-sms/out.txt
+/sam-sms-service/--output-template-file
+/sam-sms-service/.gitignore
+/sam-sms-service/--s3-bucket

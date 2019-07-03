@@ -270,7 +270,7 @@ Usage:
 `sam local start-lambda [OPTIONS]
 Examples:
 
-### SETUP
+### SETUP CLI
 Start the local Lambda endpoint by running this command in the directory that contains your AWS SAM template.
 $ sam local start-lambda
 
