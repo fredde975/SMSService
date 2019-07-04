@@ -34,7 +34,7 @@ Resources:
       Runtime: "nodejs10.x"
       Timeout: "25"
 
-  SendSMSFuction:
+  SendSMSFunction:
     Type: "AWS::Lambda::Function"
     Properties:
       Handler: "index.sendSMS"
@@ -139,5 +139,5 @@ Resources:
           }
         - {calculateDatesArn: !GetAtt [ CalculateDatesFunction, Arn ],
            iteratorArn: !GetAtt [ IteratorFunction, Arn ],
-           sendSMSArn: !GetAtt [ SendSMSFuction, Arn ]}
+           sendSMSArn: !GetAtt [ SendSMSFunction, Arn ]}
       RoleArn: !GetAtt [ StatesExecutionRole, Arn ]

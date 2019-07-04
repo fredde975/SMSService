@@ -1,9 +1,13 @@
-###### SMS_with_SNS
+# SMS_with_SNS
 Nice blog that shows the process:
 https://itnext.io/creating-aws-lambda-applications-with-sam-dd13258c16dd
 
 SAM local with StepFuctions:
 https://docs.aws.amazon.com/step-functions/latest/dg/sfn-local-lambda.html
+
+These instructions are intended to help create an api that starts a state machine which sends three text messages to a receiver before a certain date.
+
+The AWS services involved to do this: APIGW, Lambda Step Functions, Lambda functions, Clod Formation and SAM (Serverless Application Model).   
 
 
 ## Implement a lambda function with Nodejs
@@ -207,7 +211,7 @@ When you're satisfied with your Lambda function, bundle the Lambda function, AWS
 ``` 
 >sam package \
          --output-template-file packaged.yaml \
-         --s3-bucket fredrik-sms-service
+         --s3-bucket fredrik-sms-service --profile fredrikDeveloper2 --region us-east-1
 ```
 
 
@@ -303,3 +307,38 @@ https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/s
    sam local invoke [OPTIONS] [FUNCTION_IDENTIFIER]
    ```
   
+  
+## debugging lambda locally
+https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-using-debugging.html
+
+```
+# Invoke a function locally in debug mode on port 5858
+$ sam local invoke -d 5858 <function logical id>
+
+# Start local API Gateway in debug mode on port 5858
+$ sam local start-api -d 5858
+
+Note
+
+If you're using sam local start-api, the local API Gateway instance exposes all of your Lambda functions. However, because you can specify a single debug port, you can only debug one function at a time. You need to call your API before the AWS SAM CLI binds to the port, which allows the debugger to connect.
+
+```
+
+You need the AWS toolkit for JetBrains. Install the plugin `AWS Toolkit`. Requires IntelliJ. 18.3 or later. You will also need `AWS CLI`, `Docker` and `SAM CLI`, see links below.
+
+https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/welcome.html
+https://aws.amazon.com/intellij/
+https://docs.aws.amazon.com/toolkit-for-jetbrains/latest/userguide/setup-toolkit.html
+
+You can use the AWS Toolkit for JetBrains to:
+
+* Create, deploy, change, and delete AWS serverless applications in an AWS account.
+* Create, run (invoke) and debug locally, run (invoke) remotely, change, and delete AWS Lambda functions in an AWS account.
+* View event logs for and delete AWS CloudFormation stacks in an AWS account.
+* Switch to using different AWS credentials to connect with a different set of access permissions within the same AWS account or a different one.
+* Switch to working with AWS resources in a different AWS Region for the connected AWS account.
+* Use an HTTP proxy and update it as needed.
+
+
+**Note**
+The AWS Toolkit for JetBrains includes the AWS Toolkit for IntelliJ (for Java development), and the AWS Toolkit for PyCharm (for Python development).
